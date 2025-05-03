@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -7,11 +7,13 @@ import {
   Typography,
   CircularProgress,
   List,
-  ListItem,
   ListItemText,
   Divider,
   Grid,
+  Button,
+  ListItemButton,
 } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { getJobStatus, listJobs } from '../services/api';
 import { Job, JobStatus } from '../types/api';
 
@@ -26,6 +28,7 @@ const STATUS_MESSAGES: Record<JobStatus, string> = {
 
 export default function JobPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [currentJob, setCurrentJob] = useState<Job | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,36 +73,56 @@ export default function JobPage() {
   }
 
   return (
-    <Container maxWidth="lg">
-      <Grid container spacing={4} sx={{ mt: 4 }}>
-        <Grid item xs={12} md={8}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Grid 
+        container 
+        spacing={3} 
+        justifyContent="center"
+        sx={{ 
+          maxWidth: '1400px',
+          margin: '0 auto',
+        }}
+      >
+        <Grid item xs={12} md={8} sx={{ minWidth: '600px' }}>
+          <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
             <Typography variant="h5" gutterBottom>
               Job Details
             </Typography>
-            <Typography variant="body1" gutterBottom>
-              Filename: {currentJob.filename}
-            </Typography>
-            <Typography variant="body1" gutterBottom>
-              Status: {STATUS_MESSAGES[currentJob.status]}
-            </Typography>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body1" color="text.secondary" gutterBottom>
+                Filename: {currentJob.filename}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Status: {STATUS_MESSAGES[currentJob.status]}
+              </Typography>
+            </Box>
 
             {currentJob.status === 'done' && currentJob.result && 'sheep_count' in currentJob.result && (
-              <Box mt={2}>
+              <Box>
                 <Typography variant="h6" gutterBottom>
                   Results
                 </Typography>
-                <Typography variant="body1">
+                <Typography variant="body1" sx={{ mb: 2 }}>
                   Sheep Count: {currentJob.result.sheep_count}
                 </Typography>
-                <Box mt={2}>
+                <Box 
+                  sx={{ 
+                    mt: 2,
+                    borderRadius: 1,
+                    overflow: 'hidden',
+                    boxShadow: 1,
+                  }}
+                >
                   <img
                     src={`${API_BASE_URL}${currentJob.result.image}`}
                     alt="Processed image"
-                    style={{ maxWidth: '100%', height: 'auto' }}
+                    style={{ 
+                      width: '100%',
+                      height: 'auto',
+                      display: 'block',
+                    }}
                     onError={(e) => {
                       console.error('Error loading image:', e);
-                      // You can add a fallback image or error message here
                     }}
                   />
                 </Box>
@@ -114,20 +137,46 @@ export default function JobPage() {
           </Paper>
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Recent Jobs
-            </Typography>
-            <List>
+        <Grid item xs={12} md={4} sx={{ minWidth: '300px' }}>
+          <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Recent Jobs
+              </Typography>
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<CloudUploadIcon />}
+                onClick={() => navigate('/')}
+                sx={{ mb: 2 }}
+              >
+                New Job
+              </Button>
+            </Box>
+            <List sx={{ p: 0 }}>
               {recentJobs.map((job) => (
                 <Box key={job.id}>
-                  <ListItem>
+                  <ListItemButton
+                    onClick={() => navigate(`/job/${job.id}`)}
+                    selected={job.id === currentJob.id}
+                    sx={{
+                      py: 1.5,
+                      '&.Mui-selected': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(25, 118, 210, 0.12)',
+                        },
+                      },
+                    }}
+                  >
                     <ListItemText
                       primary={job.filename}
                       secondary={`Status: ${STATUS_MESSAGES[job.status]}`}
+                      primaryTypographyProps={{
+                        sx: { fontWeight: job.id === currentJob.id ? 600 : 400 },
+                      }}
                     />
-                  </ListItem>
+                  </ListItemButton>
                   <Divider />
                 </Box>
               ))}
