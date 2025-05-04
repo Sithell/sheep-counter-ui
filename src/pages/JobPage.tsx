@@ -31,7 +31,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getJobStatus, listJobs, createJob } from '../services/api';
 import { Job, JobStatus } from '../types/api';
 
-const API_BASE_URL = 'http://localhost:8000'; // Match this with your backend URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const STATUS_COLORS: Record<JobStatus, string> = {
   queued: '#f0c000',    // amber
