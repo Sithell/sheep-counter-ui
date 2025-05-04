@@ -40,6 +40,8 @@ export default function JobPage() {
   const [totalPages, setTotalPages] = useState(1);
   const jobsPerPage = 5;
   const pollingInterval = useRef<NodeJS.Timeout>();
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Function to check if job status is final
   const isFinalStatus = (status: JobStatus) => {
@@ -131,6 +133,41 @@ export default function JobPage() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (file.type.startsWith('image/')) {
+        await handleFileUpload({ target: { files: [file] } } as React.ChangeEvent<HTMLInputElement>);
+      }
+    }
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   if (loading) {
@@ -260,42 +297,52 @@ export default function JobPage() {
                 
                 <Box 
                   sx={{ 
-                    border: '2px dashed rgba(25, 118, 210, 0.4)',
+                    border: '2px dashed',
+                    borderColor: isDragging ? 'primary.main' : 'rgba(25, 118, 210, 0.4)',
                     borderRadius: 2,
                     p: 6,
                     width: '100%',
                     maxWidth: 500,
                     textAlign: 'center',
-                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                    backgroundColor: isDragging ? 'rgba(25, 118, 210, 0.08)' : 'rgba(25, 118, 210, 0.04)',
                     transition: 'all 0.2s ease',
                     '&:hover': {
                       borderColor: 'primary.main',
                       backgroundColor: 'rgba(25, 118, 210, 0.08)',
                     }
                   }}
+                  onDragEnter={handleDragEnter}
+                  onDragLeave={handleDragLeave}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
                 >
                   <Button
                     variant="contained"
-                    component="label"
+                    component="span"
                     startIcon={<CloudUploadIcon />}
                     disabled={isUploading}
                     size="large"
                     sx={{ px: 4, py: 1.5, borderRadius: 2 }}
+                    onClick={handleButtonClick}
                   >
                     {isUploading ? (
                       <CircularProgress size={24} color="inherit" />
                     ) : (
                       'Select Image'
                     )}
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                    />
                   </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                  />
                   
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    {isDragging ? 'Drop image here' : 'or drag and drop an image here'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                     Supported formats: JPG, PNG, GIF (max 10MB)
                   </Typography>
                 </Box>
