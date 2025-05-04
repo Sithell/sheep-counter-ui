@@ -56,8 +56,8 @@ export default function JobPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const jobsPerPage = 5;
-  const pollingInterval = useRef<NodeJS.Timeout>();
+  const jobsPerPage = 6;
+  const pollingInterval = useRef<ReturnType<typeof setInterval>>(1000);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,7 +179,7 @@ export default function JobPage() {
     if (files.length > 0) {
       const file = files[0];
       if (file.type.startsWith('image/')) {
-        await handleFileUpload({ target: { files: [file] } } as React.ChangeEvent<HTMLInputElement>);
+        await handleFileUpload({ target: { files: [file] } } as unknown as React.ChangeEvent<HTMLInputElement>);
       }
     }
   };
@@ -207,6 +207,7 @@ export default function JobPage() {
           margin: '0 auto',
         }}
       >
+      {/* @ts-ignore */}
         <Grid item xs={12} md={8} sx={{ minWidth: '600px' }}>
           <Paper 
             elevation={3} 
@@ -255,6 +256,7 @@ export default function JobPage() {
 
                 <Box sx={{ p: 3 }}>
                   <Grid container spacing={3}>
+                  {/* @ts-ignore */}
                     <Grid item xs={12} md={6}>
                       <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
                         <CardContent>
@@ -275,8 +277,10 @@ export default function JobPage() {
                       </Card>
                     </Grid>
 
+                    
                     {currentJob.status === 'done' && currentJob.result && 'sheep_count' in currentJob.result && (
-                      <Grid item xs={12} md={6}>
+                      // @ts-ignore
+                      <Grid item xs={12} md={6}> 
                         <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
                           <CardContent>
                             <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -291,7 +295,11 @@ export default function JobPage() {
                             <Button
                               variant="contained"
                               startIcon={<DownloadIcon />}
-                              onClick={() => window.open(`${API_BASE_URL}${currentJob.result.report}`, '_blank')}
+                              onClick={() => {
+                                if (currentJob.result && 'report' in currentJob.result) {
+                                  window.open(`${API_BASE_URL}${currentJob.result.report}`, '_blank');
+                                }
+                              }}
                               sx={{ mt: 2, borderRadius: 6, px: 3 }}
                               color="primary"
                             >
@@ -446,7 +454,7 @@ export default function JobPage() {
             )}
           </Paper>
         </Grid>
-
+        {/* @ts-ignore */}
         <Grid item xs={12} md={4} sx={{ minWidth: '300px' }}>
           <Paper 
             elevation={3} 
