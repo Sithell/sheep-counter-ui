@@ -2,12 +2,15 @@ export interface Job {
   id: string;
   filename: string;
   status: JobStatus;
+  created_at: string;
   result: DetectionResult | JobError | null;
 }
 
 export interface DetectionResult {
   sheep_count: number;
   image: string;
+  duration: number;
+  report: string;
 }
 
 export interface JobError {

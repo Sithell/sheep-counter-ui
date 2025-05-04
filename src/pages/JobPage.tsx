@@ -14,6 +14,7 @@ import {
   ListItemButton,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DownloadIcon from '@mui/icons-material/Download';
 import { getJobStatus, listJobs } from '../services/api';
 import { Job, JobStatus } from '../types/api';
 
@@ -43,7 +44,11 @@ export default function JobPage() {
           listJobs(10, 0),
         ]);
         setCurrentJob(job);
-        setRecentJobs(jobsResponse.items);
+        // Sort jobs by creation date, newest first
+        const sortedJobs = [...jobsResponse.items].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setRecentJobs(sortedJobs);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -92,8 +97,11 @@ export default function JobPage() {
               <Typography variant="body1" color="text.secondary" gutterBottom>
                 Filename: {currentJob.filename}
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" gutterBottom>
                 Status: {STATUS_MESSAGES[currentJob.status]}
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Created: {new Date(currentJob.created_at).toLocaleString()}
               </Typography>
             </Box>
 
@@ -105,6 +113,17 @@ export default function JobPage() {
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   Sheep Count: {currentJob.result.sheep_count}
                 </Typography>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  Processing Time: {(currentJob.result.duration / 1000).toFixed(2)} seconds
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<DownloadIcon />}
+                  onClick={() => window.open(`${API_BASE_URL}${currentJob.result.report}`, '_blank')}
+                  sx={{ mb: 2 }}
+                >
+                  Download Report (.pdf)
+                </Button>
                 <Box 
                   sx={{ 
                     mt: 2,
@@ -171,7 +190,13 @@ export default function JobPage() {
                   >
                     <ListItemText
                       primary={job.filename}
-                      secondary={`Status: ${STATUS_MESSAGES[job.status]}`}
+                      secondary={
+                        <>
+                          Status: {STATUS_MESSAGES[job.status]}
+                          <br />
+                          Created: {new Date(job.created_at).toLocaleString()}
+                        </>
+                      }
                       primaryTypographyProps={{
                         sx: { fontWeight: job.id === currentJob.id ? 600 : 400 },
                       }}
