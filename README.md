@@ -1,60 +1,88 @@
-# React + TypeScript + Vite
+# Sheep Counter UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Современный веб-интерфейс для сервиса Sheep Counter, который предоставляет возможности детекции объектов с использованием YOLO и FastAPI. Это React-приложение позволяет пользователям загружать изображения, обрабатывать их через сервис детекции и просматривать результаты.
 
-Currently, two official plugins are available:
+## Возможности
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Современный, адаптивный интерфейс на React и Material-UI
+- Загрузка и обработка изображений
+- Отслеживание статуса задач в реальном времени
+- Просмотр обработанных изображений с результатами детекции
+- Поддержка Docker для простого развертывания
 
-## Expanding the ESLint configuration
+## Требования
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Node.js 20 или новее
+- npm (входит в состав Node.js)
+- Docker (опционально, для контейнеризованного развертывания)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Установка
+
+### Локальная разработка
+
+1. Клонируйте репозиторий:
+```bash
+git clone https://github.com/Sithell/sheep-counter-ui.git
+cd sheep-counter-ui
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+2. Установите зависимости:
+```bash
+npm install
 ```
 
-## Run
+3. Запустите сервер разработки:
+```bash
+npm run dev
+```
 
+Приложение будет доступно по адресу `http://localhost:5173`
+
+### Сборка для продакшена
+
+1. Соберите приложение:
+```bash
+npm run build
 ```
-npm install && npm run dev
+
+2. Предпросмотр продакшен-сборки:
+```bash
+npm run preview
 ```
+
+## Развертывание через Docker
+
+### Сборка Docker-образа
+
+```bash
+docker build -t sheep-counter-ui .
+```
+
+### Запуск контейнера
+
+```bash
+docker run -p 80:80 sheep-counter-ui
+```
+
+Приложение будет доступно по адресу `http://localhost`
+
+## Конфигурация
+
+Приложение настроено на подключение к сервису Sheep Counter. Убедитесь, что сервис запущен и доступен.
+
+## Разработка
+
+- `npm run dev` - Запуск сервера разработки
+- `npm run build` - Сборка для продакшена
+- `npm run lint` - Запуск ESLint
+- `npm run preview` - Предпросмотр продакшен-сборки
+
+## Используемые технологии
+
+- React 19
+- TypeScript
+- Material-UI
+- Vite
+- Axios
+- React Router
+- Бэкенд-сервис: [Sheep Counter](https://github.com/Sithell/sheep-counter)
