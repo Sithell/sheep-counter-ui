@@ -13,14 +13,32 @@ import {
   Button,
   ListItemButton,
   Pagination,
+  Chip,
+  Card,
+  CardContent,
+  CardMedia,
+  Tooltip,
+  alpha,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DownloadIcon from '@mui/icons-material/Download';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import SheepIcon from '@mui/icons-material/Pets';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { getJobStatus, listJobs, createJob } from '../services/api';
 import { Job, JobStatus } from '../types/api';
 
 const API_BASE_URL = 'http://localhost:8000'; // Match this with your backend URL
+
+const STATUS_COLORS: Record<JobStatus, string> = {
+  queued: '#f0c000',    // amber
+  processing: '#2196f3', // blue
+  done: '#4caf50',      // green
+  error: '#f44336',     // red
+};
 
 const STATUS_MESSAGES: Record<JobStatus, string> = {
   queued: 'Job is in queue',
@@ -190,72 +208,138 @@ export default function JobPage() {
         }}
       >
         <Grid item xs={12} md={8} sx={{ minWidth: '600px' }}>
-          <Paper elevation={3} sx={{ p: 4, height: '100%' }}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 0,
+              height: '100%', 
+              overflow: 'hidden',
+              borderRadius: 2,
+            }}
+          >
             {currentJob ? (
               <>
-                <Typography variant="h5" gutterBottom>
-                  Job Details
-                </Typography>
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="body1" color="text.secondary" gutterBottom>
-                    Filename: {currentJob.filename}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary" gutterBottom>
-                    Status: {STATUS_MESSAGES[currentJob.status]}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    Created: {new Date(currentJob.created_at).toLocaleString()}
-                  </Typography>
+                <Box 
+                  sx={{ 
+                    p: 3, 
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="h5" fontWeight="500">
+                      Job Details
+                    </Typography>
+                    <Chip 
+                      label={STATUS_MESSAGES[currentJob.status]} 
+                      sx={{ 
+                        ml: 2,
+                        backgroundColor: alpha(STATUS_COLORS[currentJob.status], 0.15),
+                        color: STATUS_COLORS[currentJob.status],
+                        fontWeight: 500,
+                      }} 
+                    />
+                  </Box>
+                  <Button
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => navigate('/')}
+                    color="inherit"
+                    size="small"
+                  >
+                    Back to upload
+                  </Button>
                 </Box>
 
-                {currentJob.status === 'done' && currentJob.result && 'sheep_count' in currentJob.result && (
-                  <Box>
-                    <Typography variant="h6" gutterBottom>
-                      Results
-                    </Typography>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
-                      Sheep Count: {currentJob.result.sheep_count}
-                    </Typography>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
-                      Processing Time: {(currentJob.result.duration / 1000).toFixed(2)} seconds
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<DownloadIcon />}
-                      onClick={() => window.open(`${API_BASE_URL}${currentJob.result.report}`, '_blank')}
-                      sx={{ mb: 2 }}
-                    >
-                      Download Report (.pdf)
-                    </Button>
-                    <Box 
+                <Box sx={{ p: 3 }}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+                        <CardContent>
+                          <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <InsertDriveFileIcon fontSize="small" /> File
+                          </Typography>
+                          <Typography variant="body1" fontWeight="500">{currentJob.filename}</Typography>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+                        <CardContent>
+                          <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <AccessTimeIcon fontSize="small" /> Created
+                          </Typography>
+                          <Typography variant="body1">{new Date(currentJob.created_at).toLocaleString()}</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    {currentJob.status === 'done' && currentJob.result && 'sheep_count' in currentJob.result && (
+                      <Grid item xs={12} md={6}>
+                        <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+                          <CardContent>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <QueryStatsIcon fontSize="small" /> Results
+                            </Typography>
+                            <Typography variant="h4" fontWeight="500" color="primary.main" sx={{ mb: 1 }}>
+                              {currentJob.result.sheep_count} sheep
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Processed in {(currentJob.result.duration / 1000).toFixed(2)} seconds
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              startIcon={<DownloadIcon />}
+                              onClick={() => window.open(`${API_BASE_URL}${currentJob.result.report}`, '_blank')}
+                              sx={{ mt: 2, borderRadius: 6, px: 3 }}
+                              color="primary"
+                            >
+                              Download Report (PDF)
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    )}
+                  </Grid>
+
+                  {currentJob.status === 'done' && currentJob.result && 'sheep_count' in currentJob.result && (
+                    <Card 
                       sx={{ 
                         mt: 2,
-                        borderRadius: 1,
+                        borderRadius: 2,
                         overflow: 'hidden',
-                        boxShadow: 1,
+                        boxShadow: 'none',
+                        border: '1px solid',
+                        borderColor: 'divider',
                       }}
                     >
-                      <img
+                      <CardMedia
+                        component="img"
                         src={`${API_BASE_URL}${currentJob.result.image}`}
                         alt="Processed image"
-                        style={{ 
+                        sx={{ 
                           width: '100%',
                           height: 'auto',
-                          display: 'block',
+                          maxHeight: '600px',
+                          objectFit: 'contain',
+                          bgcolor: 'black',
                         }}
                         onError={(e) => {
                           console.error('Error loading image:', e);
                         }}
                       />
-                    </Box>
-                  </Box>
-                )}
+                    </Card>
+                  )}
 
-                {currentJob.status === 'error' && currentJob.result && 'error' in currentJob.result && (
-                  <Typography color="error" mt={2}>
-                    Error: {currentJob.result.error}
-                  </Typography>
-                )}
+                  {currentJob.status === 'error' && currentJob.result && 'error' in currentJob.result && (
+                    <Box sx={{ mt: 3, p: 3, borderRadius: 2, bgcolor: alpha('#f44336', 0.1) }}>
+                      <Typography color="error" variant="body1">
+                        Error: {currentJob.result.error}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
               </>
             ) : (
               <Box
@@ -299,7 +383,7 @@ export default function JobPage() {
                   sx={{ 
                     border: '2px dashed',
                     borderColor: isDragging ? 'primary.main' : 'rgba(25, 118, 210, 0.4)',
-                    borderRadius: 2,
+                    borderRadius: 3,
                     p: 6,
                     width: '100%',
                     maxWidth: 500,
@@ -319,10 +403,15 @@ export default function JobPage() {
                   <Button
                     variant="contained"
                     component="span"
-                    startIcon={<CloudUploadIcon />}
+                    startIcon={<AddPhotoAlternateIcon />}
                     disabled={isUploading}
                     size="large"
-                    sx={{ px: 4, py: 1.5, borderRadius: 2 }}
+                    sx={{ 
+                      px: 4, 
+                      py: 1.5, 
+                      borderRadius: 6,
+                      boxShadow: 2,
+                    }}
                     onClick={handleButtonClick}
                   >
                     {isUploading ? (
@@ -359,62 +448,113 @@ export default function JobPage() {
         </Grid>
 
         <Grid item xs={12} md={4} sx={{ minWidth: '300px' }}>
-          <Paper elevation={3} sx={{ p: 3, height: '100%' }}>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              height: '100%',
+              borderRadius: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <Box 
+              sx={{ 
+                p: 3, 
+                bgcolor: 'primary.main',
+                color: '#fff',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Typography variant="h6" gutterBottom fontWeight="500">
                 Recent Jobs
               </Typography>
+              
               <Button
                 variant="contained"
                 fullWidth
                 startIcon={<CloudUploadIcon />}
                 onClick={() => navigate('/')}
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mt: 1,
+                  bgcolor: '#fff',
+                  color: 'primary.main',
+                  '&:hover': {
+                    bgcolor: alpha('#fff', 0.9),
+                  },
+                  borderRadius: 6,
+                  fontWeight: 500,
+                  py: 1.2,
+                }}
               >
                 New Job
               </Button>
             </Box>
-            <List sx={{ p: 0 }}>
-              {recentJobs.map((job) => (
-                <Box key={job.id}>
-                  <ListItemButton
-                    onClick={() => navigate(`/job/${job.id}`)}
-                    selected={job.id === currentJob?.id}
-                    sx={{
-                      py: 1.5,
-                      '&.Mui-selected': {
-                        backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(25, 118, 210, 0.12)',
+
+            <Box sx={{ maxHeight: '600px', overflow: 'auto' }}>
+              <List sx={{ p: 0 }}>
+                {recentJobs.map((job) => (
+                  <Box key={job.id}>
+                    <ListItemButton
+                      onClick={() => navigate(`/job/${job.id}`)}
+                      selected={job.id === currentJob?.id}
+                      sx={{
+                        p: 2,
+                        borderLeft: '4px solid transparent',
+                        borderLeftColor: job.id === currentJob?.id ? STATUS_COLORS[job.status] : 'transparent',
+                        '&.Mui-selected': {
+                          backgroundColor: alpha(STATUS_COLORS[job.status], 0.05),
+                          '&:hover': {
+                            backgroundColor: alpha(STATUS_COLORS[job.status], 0.1),
+                          },
                         },
-                      },
-                    }}
-                  >
-                    <ListItemText
-                      primary={job.filename}
-                      secondary={
-                        <>
-                          Status: {STATUS_MESSAGES[job.status]}
-                          <br />
-                          Created: {new Date(job.created_at).toLocaleString()}
-                        </>
-                      }
-                      primaryTypographyProps={{
-                        sx: { fontWeight: job.id === currentJob?.id ? 600 : 400 },
                       }}
-                    />
-                  </ListItemButton>
-                  <Divider />
-                </Box>
-              ))}
-            </List>
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                    >
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Typography variant="body1" sx={{ fontWeight: job.id === currentJob?.id ? 500 : 400 }}>
+                              {job.filename}
+                            </Typography>
+                            <Tooltip title={STATUS_MESSAGES[job.status]} arrow>
+                              <Box 
+                                sx={{ 
+                                  width: 10, 
+                                  height: 10, 
+                                  borderRadius: '50%', 
+                                  bgcolor: STATUS_COLORS[job.status],
+                                  ml: 1,
+                                }}
+                              />
+                            </Tooltip>
+                          </Box>
+                        }
+                        secondary={
+                          <Box sx={{ mt: 0.5 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              {new Date(job.created_at).toLocaleString()}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                    <Divider />
+                  </Box>
+                ))}
+              </List>
+            </Box>
+
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
               <Pagination
                 count={totalPages}
                 page={currentPage}
                 onChange={handlePageChange}
                 color="primary"
                 size="small"
+                sx={{
+                  '& .MuiPaginationItem-root': {
+                    borderRadius: 1,
+                  }
+                }}
               />
             </Box>
           </Paper>
