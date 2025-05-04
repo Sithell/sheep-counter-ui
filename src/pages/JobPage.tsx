@@ -12,6 +12,7 @@ import {
   Grid,
   Button,
   ListItemButton,
+  Pagination,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -33,6 +34,9 @@ export default function JobPage() {
   const [currentJob, setCurrentJob] = useState<Job | null>(null);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const jobsPerPage = 5;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,7 +45,7 @@ export default function JobPage() {
       try {
         const [job, jobsResponse] = await Promise.all([
           getJobStatus(id),
-          listJobs(10, 0),
+          listJobs(jobsPerPage, (currentPage - 1) * jobsPerPage),
         ]);
         setCurrentJob(job);
         // Sort jobs by creation date, newest first
@@ -49,6 +53,7 @@ export default function JobPage() {
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setRecentJobs(sortedJobs);
+        setTotalPages(Math.ceil(jobsResponse.total / jobsPerPage));
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -57,7 +62,11 @@ export default function JobPage() {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, currentPage]);
+
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  };
 
   if (loading) {
     return (
@@ -206,6 +215,15 @@ export default function JobPage() {
                 </Box>
               ))}
             </List>
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={handlePageChange}
+                color="primary"
+                size="small"
+              />
+            </Box>
           </Paper>
         </Grid>
       </Grid>
